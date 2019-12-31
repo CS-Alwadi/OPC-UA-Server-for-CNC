@@ -1,0 +1,59 @@
+{
+	"folders": 
+	[
+		{
+			"path": "."
+		}
+	],
+	"extensions": {
+		"recommendations": [
+			"ms-vscode.cpptools",
+			"ms-python.python",
+			"twxs.cmake",
+			"eamodio.gitlens",
+			"mhutchie.git-graph",
+			"donjayamanne.githistory",
+			"seunlanlege.action-buttons",
+			"vscode-icons-team.vscode-icons",
+			"webfreak.debug"
+		]
+	},
+	"settings": {
+		"actionButtons": {
+			"commands": [
+				{
+					"name": "Cmake",					
+					"singleInstance": true,
+					"color": "Green",
+					"cwd": "${workspaceRoot}/build",
+					"command": "cmake .. -G \"MinGW Makefiles\"",
+					"isBuildCommand": true,		
+				}, 
+				{
+					"name": "build",					
+					"singleInstance": true,
+					"color": "red",
+					"cwd": "${workspaceRoot}/build",
+					"command": "mingw32-make",
+					"isBuildCommand": true,		
+				},
+				{
+					"name": "Run",					
+					"singleInstance": true,
+					"color": "white",
+					"cwd": "${workspaceRoot}/build",
+					"command": "./OPCUA_Server",
+					"isBuildCommand": false,	
+				},
+				{
+					"name": "clear build",					
+					"singleInstance": true,
+					"color": "Red",
+					"cwd": "${workspaceRoot}",
+					"command": "rm -rf build && mkdir build",
+					"isBuildCommand": false,	
+				}
+			]
+		}
+	}
+}
