@@ -1,0 +1,1 @@
+add_library(cmp cmp/cmp.h cmp/cmp.c)
