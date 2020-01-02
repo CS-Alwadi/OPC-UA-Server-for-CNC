@@ -41,7 +41,7 @@
 					"name": "Run",					
 					"singleInstance": true,
 					"color": "white",
-					"cwd": "${workspaceRoot}/build",
+					"cwd": "${workspaceRoot}/build/source",
 					"command": "./OPCUA_Server",
 					"isBuildCommand": false,	
 				},

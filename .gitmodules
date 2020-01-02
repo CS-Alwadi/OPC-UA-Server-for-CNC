@@ -1,0 +1,6 @@
+[submodule "spdlog"]
+	path = Dependencies/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "cmp"]
+	path = Dependencies/cmp
+	url = https://github.com/camgunz/cmp.git
