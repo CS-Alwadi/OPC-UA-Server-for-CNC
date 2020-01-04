@@ -1,3 +1,15 @@
-set(SOURCE main.cpp)
-add_executable (${PROJECT_NAME} ${SOURCE})
+message("CMAKE_CURRENT_SOURCE_DIR -> ${CMAKE_CURRENT_SOURCE_DIR}")
+
+FILE(GLOB_RECURSE SOURCE_CPP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")     
+FILE(GLOB_RECURSE SOURCE_C_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.c")
+
+
+
+foreach(CUR_NAME ${SOURCE_CPP_FILES})
+    message("file: " ${CUR_NAME})
+endforeach()
+
+add_executable (${PROJECT_NAME} ${SOURCE_CPP_FILES} ${SOURCE_C_FILES})
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries (OPCUA_Server LINK_PUBLIC cmp)
+target_link_libraries(OPCUA_Server LINK_PUBLIC spdlog)

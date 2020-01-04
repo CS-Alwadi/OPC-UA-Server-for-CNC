@@ -1,9 +1,23 @@
+/**
+ * @file main.cpp
+ * @author Al-Wadi (omar.alwadi@outlook.com)
+ * @brief This is main file
+ * @version 0.1
+ * @date 2020-01-02
+ * 
+ * @copyright Copyright (c) 2020
+ */
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <iostream>
+#include <Windows.h>
 #include "cmp/cmp.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+using namespace std;
 
 static bool read_bytes(void *data, size_t sz, FILE *fh) {
     return fread(data, sizeof(uint8_t), sz, fh) == (sz * sizeof(uint8_t));
@@ -27,6 +41,9 @@ void error_and_exit(const char *msg) {
 }
 
 int main(void) {
+    spdlog::info("Welcome to spdlog!");
+    spdlog::error("Some error message with arg: {}", 1);
+    cout << "this is OPC UA Server" << endl;
     FILE *fh = NULL;
     cmp_ctx_t cmp;
     uint32_t array_size = 0;
@@ -55,8 +72,6 @@ int main(void) {
     if (!cmp_read_array(&cmp, &array_size))
         error_and_exit(cmp_strerror(&cmp));
 
-    /* You can read the str byte size and then read str bytes... */
-
     if (!cmp_read_str_size(&cmp, &str_size))
         error_and_exit(cmp_strerror(&cmp));
 
@@ -66,19 +81,15 @@ int main(void) {
     if (!read_bytes(hello, str_size, fh))
         error_and_exit(cmp_strerror(&cmp));
 
-    /*
-     * ...or you can set the maximum number of bytes to read and do it all in
-     * one call
-     */
+    
 
     str_size = sizeof(message_pack);
     if (!cmp_read_str(&cmp, message_pack, &str_size))
         error_and_exit(cmp_strerror(&cmp));
-
+    
     printf("Array Length: %u.\n", array_size);
     printf("[\"%s\", \"%s\"]\n", hello, message_pack);
 
     fclose(fh);
-
     return EXIT_SUCCESS;
 }
