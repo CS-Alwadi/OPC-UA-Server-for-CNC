@@ -4,12 +4,20 @@ FILE(GLOB_RECURSE SOURCE_CPP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 FILE(GLOB_RECURSE SOURCE_C_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.c")
 
 
-
-foreach(CUR_NAME ${SOURCE_CPP_FILES})
-    message("file: " ${CUR_NAME})
+foreach(CUR_CXX_FILE ${SOURCE_CPP_FILES})
+    message("source file: " ${CUR_CXX_FILE})
 endforeach()
 
-add_executable (${PROJECT_NAME} ${SOURCE_CPP_FILES} ${SOURCE_C_FILES})
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries (OPCUA_Server LINK_PUBLIC cmp)
-target_link_libraries(OPCUA_Server LINK_PUBLIC spdlog)
+foreach(CUR_C_FILE ${SOURCE_C_FILES})
+    message("source file: " ${CUR_C_FILE})
+endforeach()
+
+add_executable (${PROJECT_NAME} 
+                ${SOURCE_CPP_FILES} 
+                ${SOURCE_C_FILES}
+                )
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include/)
+target_link_libraries (${PROJECT_NAME} LINK_PUBLIC cmp)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC spdlog)
+#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC open62541)
