@@ -14,7 +14,6 @@
 	do {                                                                 \
 		if (!condition) {                                            \
 			UA_LogE("{0} , {1}",msg, cmp_strerror(msgpack_ctx)); \
-			return OPCUA_LOG_BAD_ARGUMENT;                                            \
 		}                                                            \
 	} while (0)
 //Структура контейнера записи по стандарту cmp 

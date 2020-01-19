@@ -1,18 +1,18 @@
 #include "shared_memory.h"
-
-SharedMemory::SharedMemory(ShMemType type) : m_SharedMemoryType (type)
+#include "libs_config.h"
+shared_memory::shared_memory(ShMemType type) : m_shared_memory_Type (type)
 {
-	if (m_SharedMemoryType == ShMemType::Server)
+	if (m_shared_memory_Type == ShMemType::Server)
         UA_LogI("Shared memory mode : Server!");
 	
-	else if (m_SharedMemoryType == ShMemType::Client)
-		UA_LogI("SharedMemory mode : Client!");
+	else if (m_shared_memory_Type == ShMemType::Client)
+		UA_LogI("shared_memory mode : Client!");
 	
-	// Init SharedMemory
+	// Init shared_memory
 	this->Init();
 }
 
-SharedMemory::~SharedMemory()
+shared_memory::~shared_memory()
 {
 	CloseHandle(m_hFile);        // Close handle of the file ( Shared Memory )
 	UnmapViewOfFile(m_buffer);   // Un map the view from the mapping object
@@ -20,28 +20,28 @@ SharedMemory::~SharedMemory()
 	CloseHandle(m_hMutexObject); // Close handle to the mutex
 }
 
-// Init SharedMemory
-bool SharedMemory::Init()
+// Init shared_memory
+bool shared_memory::Init()
 {
 	// Shared Memory mode is  ( Server )
 
-	if (m_SharedMemoryType == ShMemType::Server)
+	if (m_shared_memory_Type == ShMemType::Server)
 	{
 		// Creating File 
-		m_hFile = CreateFile("SharedMemory.bin", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ
+		m_hFile = CreateFile("shared_memory.bin", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ
 			, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 		if (m_hFile == INVALID_HANDLE_VALUE)
 		{
-			UA_LogE("Error with creating the file SharedMemory.bin VAR{0}", GetLastError());
+			UA_LogE("Error with creating the file shared_memory.bin VAR{0}", GetLastError());
 			return false;
 		}
 		else
-			UA_LogI("File SharedMemory.bin created!");
+			UA_LogI("File shared_memory.bin created!");
 
 		// Creating file mapping object
 		m_hMapObject = CreateFileMappingA(m_hFile, NULL, PAGE_READWRITE, 0,
-			SH_MEM_BUF_SIZE, (LPCSTR)"FMSharedMemory");
+			SH_MEM_BUF_SIZE, (LPCSTR)"FMshared_memory");
 		if (m_hMapObject == INVALID_HANDLE_VALUE)
 		{
 			UA_LogE("Error with Creating Mapping Object!");
@@ -63,7 +63,7 @@ bool SharedMemory::Init()
 			UA_LogI("Map view created");
 
 		// Creating the mutex object
-		m_hMutexObject = CreateMutex(NULL, false, "SharedMemoryMutex");
+		m_hMutexObject = CreateMutex(NULL, false, "shared_memoryMutex");
 		if (m_hMutexObject == INVALID_HANDLE_VALUE)
 		{
 			UA_LogE("Error: Could't create mutex object.");
@@ -75,10 +75,10 @@ bool SharedMemory::Init()
 	}
 
 	// Shared Memory mode is  ( Client )
-	else if (m_SharedMemoryType == ShMemType::Client)
+	else if (m_shared_memory_Type == ShMemType::Client)
 	{
 		// Openning file mapping object
-		m_hMapObject = OpenFileMapping(FILE_MAP_ALL_ACCESS, false, "FMSharedMemory");
+		m_hMapObject = OpenFileMapping(FILE_MAP_ALL_ACCESS, false, "FMshared_memory");
 
 		if (m_hMapObject == INVALID_HANDLE_VALUE)
 		{
@@ -100,7 +100,7 @@ bool SharedMemory::Init()
 			UA_LogI("Map view created");
 
 		//Open the mutex object
-		m_hMutexObject = OpenMutex(MUTEX_ALL_ACCESS, false, "SharedMemoryMutex");
+		m_hMutexObject = OpenMutex(MUTEX_ALL_ACCESS, false, "shared_memoryMutex");
 		if (m_hMutexObject == INVALID_HANDLE_VALUE)
 		{
 			UA_LogE("Error: Could't Open mutex object.");
@@ -111,11 +111,11 @@ bool SharedMemory::Init()
 	}
 
 	// TODO
-	UA_LogW("Unkown type of SharedMemory!");
+	UA_LogW("Unkown type of shared_memory!");
 	return false;
 }
 
-void SharedMemory::ReadMemory(uint8_t * destenationBuffer, unsigned int destinationBufferSize)
+void shared_memory::ReadMemory(uint8_t * destenationBuffer, unsigned int destinationBufferSize)
 {
 	
 	m_dwWaitResult = WaitForSingleObject(m_hMutexObject, 10);
@@ -158,7 +158,7 @@ void SharedMemory::ReadMemory(uint8_t * destenationBuffer, unsigned int destinat
 	
 }
 
-void SharedMemory::WriteMemory(const uint8_t* destenationBuffer, unsigned int destinationBufferSize)
+void shared_memory::WriteMemory(const uint8_t* destenationBuffer, unsigned int destinationBufferSize)
 {
 	m_dwWaitResult = WaitForSingleObject(m_hMutexObject, 10);
 	switch (m_dwWaitResult)
