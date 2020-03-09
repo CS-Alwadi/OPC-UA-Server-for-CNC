@@ -28,7 +28,7 @@ class shared_memory
 	DWORD     m_dwWaitResult;     // indicator for the waiting mutex to release
 	PVOID	  m_buffer;           // temperory buffer 
 	ShMemType m_shared_memory_Type; // Shared memory type ( Server - Client )
-	
+	bool m_is_init = false;
 public:
 	shared_memory() = delete;
 	shared_memory(ShMemType);
@@ -38,10 +38,18 @@ public:
 	{
 		return SH_MEM_BUF_SIZE;
 	}
-	
+	inline PVOID get_shmem_pointer()
+	{
+		if (m_is_init)
+			return m_buffer;
+		return NULL;
+	}
 	void ReadMemory(uint8_t * destenationBuffer , unsigned int destinationBufferSize);
 	void WriteMemory(const uint8_t * destenationBuffer, unsigned int destinationBufferSize);
-
+	bool is_init()
+	{
+		return this->m_is_init;
+	}
 	/* Private functions */
 private:
 	bool Init();

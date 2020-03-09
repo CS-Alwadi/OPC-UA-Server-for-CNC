@@ -27,16 +27,16 @@ namespace NC_Log_space
 		static std::shared_ptr<spdlog::logger> ms_ua_connection_logger;
 	};
 }
-#ifdef DEBUG_OPC_UA_SERVER
+//#ifdef DEBUG_OPC_UA_SERVER
 	#define UA_LogW(...) NC_Log_space::NC_log::GetLogger()->warn(__VA_ARGS__)
 	#define UA_LogE(...) NC_Log_space::NC_log::GetLogger()->error(__VA_ARGS__)
 	#define UA_LogI(...) NC_Log_space::NC_log::GetLogger()->info(__VA_ARGS__)
 	#define UA_LogT(...) NC_Log_space::NC_log::GetLogger()->trace(__VA_ARGS__)
-#else 
+/*#else 
 	#define UA_LogW(...)
 	#define UA_LogE(...)
 	#define UA_LogI(...)
 	#define UA_LogT(...)
-#endif
+#endif*/
 
 #endif //H_OPCUA_LOG_H

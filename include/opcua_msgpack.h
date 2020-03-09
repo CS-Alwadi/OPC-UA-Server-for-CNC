@@ -1,3 +1,13 @@
+/**
+ * @file opcua_msgpack.h
+ * @author your name (you@domain.com)
+ * @brief 
+ * @version 0.1
+ * @date 2020-01-19
+ * 
+ * @copyright Copyright (c) 2020
+ * 
+ */
 #ifndef H_OPCUA_MSGPACK_H
 #define H_OPCUA_MSGPACK_H
 #include <stddef.h>

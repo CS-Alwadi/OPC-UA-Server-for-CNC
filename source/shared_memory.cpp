@@ -69,7 +69,7 @@ bool shared_memory::Init()
 			UA_LogE("Error: Could't create mutex object.");
 			return false;
 		}
-
+		this->m_is_init = true;
 		return true;
 
 	}
@@ -106,7 +106,7 @@ bool shared_memory::Init()
 			UA_LogE("Error: Could't Open mutex object.");
 			return false;
 		}
-
+		this->m_is_init = true;
 		return true;
 	}
 
