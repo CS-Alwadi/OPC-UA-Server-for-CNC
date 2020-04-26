@@ -14,6 +14,9 @@
 
 using namespace std;
 #define SOFT_PLC_MAX_NAME_LEN_C 50
+
+#define CMP_DBG_RW(condition) (condition == 1 ? "PASS\n" : "FALIED\n")
+
 /**
  * @brief Структура описивающая образ входной/выходной переменной в OPC UA узле
  */
@@ -32,32 +35,41 @@ struct soft_plc_io_opcua_st{
   };
 
 typedef struct cnc_node_st{
+    int64_t index_in_softplc;
+    int64_t address_in_cmp;
+    char name[30] = {};
+    uint32_t name_len = 30;
     uint8_t value_size;            /*< Размер перемены в памяти*/
-    uint8_t* address_value = NULL; /*< Адрес переменной*/
+    uint8_t* p_value = NULL;       /*< Адрес переменной*/
 }cnc_node_t;
 
 
 class cnc_machine
 {
+    /****************************************************** PRIVATE ************************************************************/
+    private:
     shared_memory *m_shared_mem_onject = NULL;  //Объект общей памяти 
-    UA_DataSource m_opcua_handlers;             //Обработчик чтение и записи команд из OPC UA
-    std::vector<cnc_node_t> mp_io_container;    //Контейнер содержащий адресса переменных CMP в буфера общей памяти
-    PVOID m_buffer = NULL;                      //буфер общей памяти
+    std::vector<cnc_node_t> m_io_container;    //Контейнер содержащий адресса переменных CMP в буфера общей памяти
+
     uint32_t nodes_quantity = 0;                //количество перемнных CMP
-    struct msgpack_container_ctx msg_container; //Контейнер для хранение и обработки msgpack буфер
-	struct cmp_ctx_s * msgpack_ctx = NULL;      //указатель на структуру msgpack 
+    
+    /*TIME variables*/
     uint32_t cnc_epoch_time = 0;                //Текушее время СЧПУ в стандарте epoch time
     uint32_t server_epoch_time = 0;             //Текущее время OPC UA сервера
 
-    private:
-    void create_opc_nodes();
+    /* MSGPACK Handlers */
+    struct msgpack_container_ctx msg_container; //Контейнер для хранение и обработки msgpack буфер
+	struct cmp_ctx_s * msgpack_ctx = NULL;      //указатель на структуру msgpack 
+    
+    /* OPC UA Handlers */
+    UA_Server * opcua_server = NULL;            /**< OPC UA Server */
+    UA_ServerConfig opcua_config;               /**< */
+    UA_ServerNetworkLayer opcua_network_layer;
+    UA_DataSource m_opcua_handlers;             //Обработчик чтение и записи команд из OPC UA
+    bool is_opcua_server_running = true;
 
-    public:
-    cnc_machine()
-    {
-        UA_LogI("cnc_mashine");
-        mp_io_container.reserve(100);
-    }
+    PVOID m_buffer = NULL;                      //буфер общей памяти
+    
 
     /**
      * @brief Иницализация работы структур для работы с общей памяти
@@ -72,33 +84,58 @@ class cnc_machine
      * 
      * @return int8_t 
      */
-    int8_t fill_io_container();
+    uint32_t fill_io_container();
 
-    /**
-     * @brief 
-     * 
-     * @param handle 
-     * @param nodeid 
-     * @param includeSourceTimeStamp 
-     * @param range 
-     * @param value 
-     * @return UA_StatusCode 
-     */
-    UA_StatusCode read_node_from_cnc(void *handle, const UA_NodeId nodeid,
-                          UA_Boolean includeSourceTimeStamp,
-                          const UA_NumericRange *range, UA_DataValue *value);
+    
 
-    /**
-     * @brief  
-     * 
-     * @param handle 
-     * @param nodeid 
-     * @param data 
-     * @param range 
-     * @return UA_StatusCode 
-     */
-    UA_StatusCode write_node_to_cnc(void *handle, const UA_NodeId nodeid,
-                           const UA_Variant *data, const UA_NumericRange *range);
+    void config_opcua_server();
+    void init_opcua_network_layer();
+    bool fill_opcua_address_space();
+
+    /****************************************************** PUBLIC ************************************************************/
+    public:
+    cnc_machine()
+    {
+        UA_LogW("OPC UA MACHINE STARTED");
+        m_io_container.reserve(100);
+
+        UA_LogW("Shared memory get started");
+        while (false == shmem_init())
+            cout << "Tring again\n";
+
+        UA_LogW("Filling in io container");
+        fill_io_container();
+
+        UA_LogW("Set OPC UA network layer");
+        init_opcua_network_layer();
+
+        UA_LogW("Config OPC UA Server");
+        config_opcua_server();
+
+        UA_LogW("Creating OPC UA address space");
+        fill_opcua_address_space();
+        UA_LogW("****************************** Startin ******************************");
+        start_opcua_server();
+    }
+    void start_opcua_server()
+    {
+        UA_Server_run(opcua_server, &is_opcua_server_running);
+        UA_Server_delete(opcua_server);
+        opcua_network_layer.deleteMembers(&opcua_network_layer);
+    }
+    void show_io_objects()
+    {
+        if(m_io_container.empty())
+        {
+             cout << "empty\n";
+            return;
+        }
+        
+        for(uint8_t i = 0; i < m_io_container.size(); i++)
+        {
+            cout << "Name " << m_io_container[i].name << " Address = " << m_io_container[i].address_in_cmp ;//<< " Value = " << *m_io_container[i].p_value;
+        }
+    }
 };
 
 #endif //H_CNC_MACHINE_H

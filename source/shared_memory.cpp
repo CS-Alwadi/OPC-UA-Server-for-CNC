@@ -69,6 +69,7 @@ bool shared_memory::Init()
 			UA_LogE("Error: Could't create mutex object.");
 			return false;
 		}
+		m_pshared_file = (uint8_t*)m_buffer;
 		this->m_is_init = true;
 		return true;
 
@@ -93,6 +94,7 @@ bool shared_memory::Init()
 		if (m_buffer == NULL)
 		{
 			UA_LogE("Error MapView is NOT created!");
+			this->m_is_init = false;
 			CloseHandle(m_hMapObject);
 			return false;
 		}
@@ -104,8 +106,10 @@ bool shared_memory::Init()
 		if (m_hMutexObject == INVALID_HANDLE_VALUE)
 		{
 			UA_LogE("Error: Could't Open mutex object.");
+			this->m_is_init = false;
 			return false;
 		}
+		m_pshared_file = (uint8_t*)m_buffer;
 		this->m_is_init = true;
 		return true;
 	}
@@ -115,28 +119,19 @@ bool shared_memory::Init()
 	return false;
 }
 
-void shared_memory::ReadMemory(uint8_t * destenationBuffer, unsigned int destinationBufferSize)
+bool shared_memory::ReadMemory(uint8_t * destenationBuffer, unsigned int destinationBufferSize)
 {
-	
-	m_dwWaitResult = WaitForSingleObject(m_hMutexObject, 10);
+	if((uint8_t * )m_pshared_file + destinationBufferSize > (uint8_t * )m_buffer + SH_MEM_BUF_SIZE)
+		return false;
+	m_dwWaitResult = WaitForSingleObject(m_hMutexObject, INFINITE);
 	switch (m_dwWaitResult)
 	{
 	// TODO
 	case WAIT_OBJECT_0:
-		try
-		{
-			if (destinationBufferSize > SH_MEM_BUF_SIZE)
-				throw('E');
-			memcpy(destenationBuffer, m_buffer, destinationBufferSize);
-		}
-		catch (...)
-		{
-			perror("ReadMemory Error!");
-		}
-		if (!ReleaseMutex(m_hMutexObject))
-		{
-			UA_LogE("Release Mutex ERORR: VAR{0}", GetLastError());
-		}
+		memcpy(destenationBuffer, m_buffer, destinationBufferSize);
+		m_pshared_file = (uint8_t*)m_pshared_file + destinationBufferSize;
+		n_writtin += destinationBufferSize;
+		ReleaseMutex(m_hMutexObject);
 		break;
 
 	case WAIT_TIMEOUT:
@@ -155,30 +150,23 @@ void shared_memory::ReadMemory(uint8_t * destenationBuffer, unsigned int destina
 		UA_LogE("ERORR Unknown\n");
 		break;
 	}
-	
+	return true;
 }
 
-void shared_memory::WriteMemory(const uint8_t* destenationBuffer, unsigned int destinationBufferSize)
+bool shared_memory::WriteMemory(const uint8_t* destenationBuffer, unsigned int destinationBufferSize)
 {
-	m_dwWaitResult = WaitForSingleObject(m_hMutexObject, 10);
+	if((uint8_t * )m_pshared_file + destinationBufferSize > (uint8_t * )m_buffer + SH_MEM_BUF_SIZE)
+		return false;
+	
+	m_dwWaitResult = WaitForSingleObject(m_hMutexObject, INFINITE);
 	switch (m_dwWaitResult)
 	{
 		// TODO
 	case WAIT_OBJECT_0:
-		try
-		{
-			if (destinationBufferSize > SH_MEM_BUF_SIZE)
-				throw('E');
-			memcpy(m_buffer, destenationBuffer, destinationBufferSize);
-		}
-		catch (...)
-		{
-			perror("WriteMemory Error!");
-		}
-		if (!ReleaseMutex(m_hMutexObject))
-		{
-			printf("Release Mutex ERORR: %d\n", GetLastError());
-		}
+		memcpy(m_pshared_file, destenationBuffer, destinationBufferSize);
+		m_pshared_file = (uint8_t*)m_pshared_file + destinationBufferSize;
+		n_writtin += destinationBufferSize;
+		ReleaseMutex(m_hMutexObject);
 		break;
 
 	case WAIT_TIMEOUT:
@@ -198,5 +186,5 @@ void shared_memory::WriteMemory(const uint8_t* destenationBuffer, unsigned int d
 		break;
 	}
 	
-	
+	return true;
 }

@@ -26,29 +26,55 @@ class shared_memory
 	HANDLE    m_hMutexObject;     // Mutex object 
 
 	DWORD     m_dwWaitResult;     // indicator for the waiting mutex to release
-	PVOID	  m_buffer;           // temperory buffer 
+	PVOID	  m_buffer;           // temperory buffer
+	uint8_t *     m_pshared_file;
 	ShMemType m_shared_memory_Type; // Shared memory type ( Server - Client )
+	uint16_t n_writtin = 0;
 	bool m_is_init = false;
+	bool m_is_opcua_running = true;
 public:
 	shared_memory() = delete;
 	shared_memory(ShMemType);
 	~shared_memory();
 
+	bool ReadMemory(uint8_t * destenationBuffer , unsigned int destinationBufferSize);
+	bool WriteMemory(const uint8_t * destenationBuffer, unsigned int destinationBufferSize);
+
 	inline unsigned int GetSizeOfView()
 	{
-		return SH_MEM_BUF_SIZE;
+		#ifdef SH_MEM_BUF_SIZE
+			return SH_MEM_BUF_SIZE;
+		#else 
+			return 0;
+		#endif
 	}
+
 	inline PVOID get_shmem_pointer()
 	{
-		if (m_is_init)
-			return m_buffer;
-		return NULL;
+		return m_buffer;
 	}
-	void ReadMemory(uint8_t * destenationBuffer , unsigned int destinationBufferSize);
-	void WriteMemory(const uint8_t * destenationBuffer, unsigned int destinationBufferSize);
+
 	bool is_init()
 	{
 		return this->m_is_init;
+	}
+	
+	inline void rewind()
+	{
+		n_writtin = 0;
+		m_pshared_file = (uint8_t*)m_buffer;
+	}
+
+	inline uint32_t get_fseek()
+	{
+		return n_writtin; 
+	}
+	inline uint8_t * get_pshared_memory()
+	{	
+		if(n_writtin == 0)
+			return &m_pshared_file[0];
+		
+		return  &m_pshared_file[get_fseek() - 1];
 	}
 	/* Private functions */
 private:
